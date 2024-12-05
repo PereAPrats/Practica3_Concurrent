@@ -88,6 +88,10 @@ func main() {
                 ch.QueueDelete(tabacQueue.Name, false, false, false)
                 ch.QueueDelete(mistrosQueue.Name, false, false, false)
                 ch.QueueDelete(alertQueue.Name, false, false, false)
+                ch.QueueDelete("alertaFumadorTabac", false, false, false)
+                ch.QueueDelete("alertaFumadorMistros", false, false, false)
+                ch.QueueDelete("fumadorTabac", false, false, false)
+                ch.QueueDelete("fumadorMistros", false, false, false)
                 partir = true
                 return
             }
