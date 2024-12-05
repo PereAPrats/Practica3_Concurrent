@@ -45,6 +45,7 @@ func main() {
     // Variable per mantenir el número de tabac
     var tabacCounter int
     var mistrosCounter int
+    var partir = false
 
     // Consumir missatges de les cues
     go func() {
@@ -87,12 +88,15 @@ func main() {
                 ch.QueueDelete(tabacQueue.Name, false, false, false)
                 ch.QueueDelete(mistrosQueue.Name, false, false, false)
                 ch.QueueDelete(alertQueue.Name, false, false, false)
+                partir = true
                 return
             }
         }
     }()
 
     // Mantenir el programa en marxa mentre espera els missatges
-    select {}
+    for !partir{
+        
+    }
 }
 
