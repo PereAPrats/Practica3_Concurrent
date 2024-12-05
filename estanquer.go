@@ -40,6 +40,8 @@ func main() {
         log.Fatal(err)
     }
 
+    err = ch.QueueBind(alertQueue.Name, "", "alerta", false, nil)
+
     // Variable per mantenir el número de tabac
     var tabacCounter int
     var mistrosCounter int

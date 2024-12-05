@@ -36,7 +36,7 @@ func main() {
     }
 
     // Enviar un missatge d'alerta
-    ch.Publish("", "alerta", false, false, amqp.Publishing{
+    ch.Publish("alerta", "", false, false, amqp.Publishing{
         Body: []byte("Anem, que ve la policia!"),
     })
 }

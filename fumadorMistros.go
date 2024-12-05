@@ -29,6 +29,17 @@ func main() {
         log.Fatal(err)
     }
 
+    // Crear la cua per rebre alertes
+    alertQueue, err := ch.QueueDeclare("alertaFumadorMistros", false, false, false, false, nil)
+    if err != nil{
+        log.Fatal(err)
+    }
+
+    err = ch.QueueBind(alertQueue.Name, "", "alerta", false, nil)
+    if err != nil{
+        log.Fatal(err)
+    }
+
     // Demanar mistros
     ch.Publish("", "mistros", false, false, amqp.Publishing{
         Body: []byte("Petició de mistros"),
@@ -40,14 +51,24 @@ func main() {
         log.Fatal(err)
     }
 
-    // Esperar resposta i gestionar el missatge
-    for msg := range msgs {
-        // Generar un temps d'espera aleatori
-        waitTime := rand.Intn(4) + 2
-        time.Sleep(time.Duration(waitTime) * time.Second)
-        fmt.Printf("He agafat el mistro %s. Gràcies! \n. . . \nMe dones un altre mistro?\n", string(msg.Body))
-        ch.Publish("", "mistros", false, false, amqp.Publishing{
-            Body: []byte("Petició de mistro"),
-        })
+    alertMsgs, err := ch.Consume(alertQueue.Name, "", true, false, false, false, nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    for{
+        select{
+        case msg := <- msgs:
+            // Generar un temps d'espera aleatori
+            waitTime := rand.Intn(4) + 2
+            time.Sleep(time.Duration(waitTime) * time.Second)
+            fmt.Printf("He agafat el mistro %s. Gràcies! \n. . . \nMe dones un altre mistro?\n", string(msg.Body))
+            ch.Publish("", "mistros", false, false, amqp.Publishing{
+                Body: []byte("Petició de mistro"),
+            })
+        case <- alertMsgs:
+            fmt.Println("Anem, que ve la policia!")
+            return
+        }
     }
 }
