@@ -11,7 +11,9 @@ import (
 func main() {
     fmt.Println("Sóm fumador. Tenc tabac pero me fan falta mistros")
 
-    conn, err := amqp.Dial("amqp://guest:guest@RabbitMQ:5672/")
+    // Conexió amb RabbitMQ
+    //(Canviar localhost al nom del contenedor de docker en cas de usar-ho)
+    conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
     if err != nil {
         log.Fatal(err)
     }
@@ -35,6 +37,7 @@ func main() {
         log.Fatal(err)
     }
 
+    // Suscripció a la cua de les alertes
     err = ch.QueueBind(alertQueue.Name, "", "alerta", false, nil)
     if err != nil{
         log.Fatal(err)
@@ -45,7 +48,7 @@ func main() {
         Body: []byte("Petició de mistros"),
     })
 
-    // Consumir missatges de la cua
+    // Consumir missatges de les cues
     msgs, err := ch.Consume(mistrosQueue.Name, "", true, false, false, false, nil)
     if err != nil {
         log.Fatal(err)
@@ -57,12 +60,14 @@ func main() {
     }
 
     for{
-        select{
+        select{ferenciar entre mistros i alertes
+        // Diferenciar entre mistros i alertes
         case msg := <- msgs:
             // Generar un temps d'espera aleatori
             waitTime := rand.Intn(4) + 2
             time.Sleep(time.Duration(waitTime) * time.Second)
             fmt.Printf("He agafat el mistro %s. Gràcies! \n. . . \nMe dones un altre mistro?\n", string(msg.Body))
+            // Demanar mes mistros
             ch.Publish("", "mistros", false, false, amqp.Publishing{
                 Body: []byte("Petició de mistro"),
             })

@@ -9,7 +9,9 @@ import (
 func main() {
     fmt.Println("No som fumador. ALERTA! Que ve la policia")
 
-    conn, err := amqp.Dial("amqp://guest:guest@RabbitMQ:5672/")
+    // Conexió RabbitMQ
+    //(Canviar localhost al nom del contenedor de docker en cas de usar-ho)
+    conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
     if err != nil {
         log.Fatal(err)
     }
@@ -21,7 +23,7 @@ func main() {
     }
     defer ch.Close()
 
-    // Creem un Fanout exchange per comunicar-se amb els fumadors
+    // Creem un Fanout exchange per comunicar-se amb els fumadors i l'estanquer
     err = ch.ExchangeDeclare(
         "alerta",   // nom de l'exchange
         "fanout",   // tipus de l'exchange
