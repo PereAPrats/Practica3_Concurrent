@@ -5,6 +5,7 @@ import (
     "log"
     "time"
     "math/rand"
+    "sync"
     "github.com/streadway/amqp"
 )
 
@@ -13,7 +14,7 @@ func main() {
 
     //Connexió amd RabbitMQ 
     //(Canviar localhost al nom del contenedor de docker en cas de usar-ho)
-    conn, err := amqp.Dial("amqp://guest:guest@RabbitMQ:5672/")
+    conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
     if err != nil {
         log.Fatal(err)
     }
@@ -24,6 +25,11 @@ func main() {
         log.Fatal(err)
     }
     defer ch.Close()
+
+    err = ch.ExchangeDeclare("alerta", "fanout", true, false, false, false, nil    )
+    if err != nil {
+        log.Fatal(err)
+    }
 
     // Creació de les cues per a tabac i mistros
     tabacQueue, err := ch.QueueDeclare("tabac", false, false, false, false, nil)
@@ -48,24 +54,33 @@ func main() {
     // Variable per mantenir el número de tabac i de mistros
     var tabacCounter int
     var mistrosCounter int
-    var partir = false
+
+    //Per esperar a que les gorutines acabin
+    var wg sync.WaitGroup
+    wg.Add(1)
+
+
 
     // Consumir missatges de les cues
     go func() {
+        defer wg.Done()
         //Missatges dels fumadorTabac.go
         tabacMsgs, err := ch.Consume(tabacQueue.Name, "", true, false, false, false, nil)
         if err != nil {
+            fmt.Printf("Error consumint cola tabac\n")
             log.Fatal(err)
         }
 
         //Missatges dels fumadorMistros.go
         mistrosMsgs, err := ch.Consume(mistrosQueue.Name, "", true, false, false, false, nil)
         if err != nil {
+            fmt.Printf("Error consumint cola mistros\n")
             log.Fatal(err)
-        }
+        }        
         //Alerta del delator
         alertMsgs, err := ch.Consume(alertQueue.Name, "", true, false, false, false, nil)
         if err != nil {
+            fmt.Printf("Error consumint cola alertes\n")
             log.Fatal(err)
         }
 
@@ -99,15 +114,12 @@ func main() {
                 ch.QueueDelete("alertaFumadorMistros", false, false, false)
                 ch.QueueDelete("fumadorTabac", false, false, false)
                 ch.QueueDelete("fumadorMistros", false, false, false)
-                partir = true
                 return
             }
         }
     }()
 
-    // Mantenir el programa en marxa fins que vengui la policia
-    for !partir{
-        
-    }
+    //Mantenir el programa en marxa
+    wg.Wait()
 }
 

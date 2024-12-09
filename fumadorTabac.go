@@ -13,7 +13,7 @@ func main() {
 
     // Conexió amb RabbitMQ
     //(Canviar localhost al nom del contenedor de docker en cas de usar-ho)
-    conn, err := amqp.Dial("amqp://guest:guest@RabbitMQ:5672/")
+    conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
     if err != nil {
         log.Fatal(err)
     }
